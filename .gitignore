@@ -1,0 +1,71 @@
+# Java
+*.class
+*.log
+*.jar
+*.war
+*.ear
+*.iml
+
+# Maven
+target/
+!src/main/resources/
+!src/test/resources/
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+**/build/
+
+# Logs
+*.log
+logs/
+*.out
+
+# IDEs
+# IntelliJ
+.idea/
+*.iws
+*.ipr
+*.iml
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+bin/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Application-specific
+.env
+application*.yml
+application*.yaml
+application*.properties
+*.h2.db
+
+# Security
+*.pem
+*.key
+*.crt
+*.jks
+
+# Others
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
