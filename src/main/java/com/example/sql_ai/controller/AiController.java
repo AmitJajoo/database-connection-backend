@@ -24,7 +24,7 @@ public class AiController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth("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"); // <== Replace with your key
+        headers.setBearerAuth(YOUR TOKEN); // <== Replace with your key
 
         prompt = "write a sql query "+prompt;
         Map<String, Object> body = Map.of(
