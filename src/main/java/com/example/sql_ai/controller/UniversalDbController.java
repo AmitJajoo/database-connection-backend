@@ -2,10 +2,7 @@ package com.example.sql_ai.controller;
 
 import com.example.sql_ai.dto.QueryRequest;
 import com.example.sql_ai.dto.SchemaRequest;
-import com.example.sql_ai.service.DatabaseService;
-import com.example.sql_ai.service.JdbcDatabaseService;
-import com.example.sql_ai.service.MongoDatabaseService;
-import com.example.sql_ai.service.SchemaService;
+import com.example.sql_ai.service.*;
 import com.example.sql_ai.util.CsvUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,9 +21,11 @@ import java.util.Map;
 public class UniversalDbController {
 
     private final SchemaService schemaService;
+    private final InformationService informationService;
 
-    public UniversalDbController(SchemaService schemaService) {
+    public UniversalDbController(SchemaService schemaService, InformationService informationService) {
         this.schemaService = schemaService;
+        this.informationService = informationService;
     }
 
     @PostMapping("/query")
@@ -88,6 +88,11 @@ public class UniversalDbController {
         } else {
             return ResponseEntity.badRequest().body("Unsupported DB type");
         }
+    }
+
+    @PostMapping("/db-info")
+    public ResponseEntity<Map<String, Object>> getDbInfo(@RequestBody QueryRequest config) throws SQLException {
+        return ResponseEntity.ok(informationService.getDbInfo(config));
     }
 
 
