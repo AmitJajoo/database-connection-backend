@@ -1,9 +1,15 @@
 package com.example.sql_ai.service;
 
+import com.example.sql_ai.dto.QueryRequest;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MongoDatabaseService implements DatabaseService {
 
@@ -26,26 +32,48 @@ public class MongoDatabaseService implements DatabaseService {
     }
 
     @Override
-    public List<Map<String, Object>> executeQuery(String rawJson) {
-        // Expecting: rawJson = collectionName:::filterJson
-        String[] parts = rawJson.split(":::");
+    public List<Map<String, Object>> executeQuery(QueryRequest request) {
+        MongoClient client = MongoClients.create(request.getUrl());
+        MongoDatabase db = client.getDatabase(request.getDatabase());
+        String[] parts = request.getQuery().split(":::");
         String collectionName = parts[0];
-        String filterJson = parts.length > 1 ? parts[1] : "{}";
+        String rawQuery = parts.length > 1 ? parts[1] : "{}";
 
-        List<Map<String, Object>> result = new ArrayList<>();
-        MongoCollection<Document> collection = database.getCollection(collectionName);
+        MongoCollection<Document> collection = db.getCollection(collectionName);
+        Bson filter = BsonDocument.parse(rawQuery);
 
-        Document filter = Document.parse(filterJson);
-
-        try (MongoCursor<Document> cursor = collection.find(filter).iterator()) {
-            while (cursor.hasNext()) {
-                Document doc = cursor.next();
-                result.add(doc);
-            }
+        // Add filters from UI
+        if (request.getFilters() != null && !request.getFilters().isEmpty()) {
+            Bson extraFilters = Filters.and(
+                    request.getFilters().entrySet().stream()
+                            .map(e -> Filters.eq(e.getKey(), e.getValue()))
+                            .collect(Collectors.toList())
+            );
+            filter = Filters.and(filter, extraFilters);
         }
 
-        return result;
+        FindIterable<Document> result = collection.find(filter);
+
+        // Sort
+        if (request.getSortBy() != null) {
+            result = result.sort(Sorts.orderBy(
+                    "desc".equalsIgnoreCase(request.getSortOrder())
+                            ? Sorts.descending(request.getSortBy())
+                            : Sorts.ascending(request.getSortBy())));
+        }
+
+        // Pagination
+        result = result.skip(request.getPage() * request.getSize()).limit(request.getSize());
+
+        List<Map<String, Object>> docs = new ArrayList<>();
+        for (Document doc : result) {
+            docs.add(doc);
+        }
+
+        client.close();
+        return docs;
     }
+
 
     @Override
     public List<String> listTablesOrCollections() {
